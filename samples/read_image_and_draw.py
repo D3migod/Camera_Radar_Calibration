@@ -11,10 +11,12 @@ import sys
 
 # Change this to where data is stored
 data_dir = '../data' 
+# vfname = 't24.420.010.left.avi'
+vfname = 't24.305.026.left.avi'
 
 if __name__ == '__main__':
     # открыть видеофайл
-    cap = cv2.VideoCapture(os.path.join(data_dir, 't24.305.025.left.avi'))
+    cap = cv2.VideoCapture(os.path.join(data_dir, vfname))
     if not cap.isOpened():
         print('error opening video file')
         sys.exit(0)
@@ -27,8 +29,8 @@ if __name__ == '__main__':
     plt.show()
 
     # отображение прямоугольника средствами opencv
-    cv2.rectangle(img, (img.shape[1] * 0.2, img.shape[0] * 0.1),
-                       (img.shape[1] * 0.5, img.shape[0] * 0.5),
+    cv2.rectangle(img, (int(img.shape[1] * 0.2), int(img.shape[0] * 0.1)),
+                       (int(img.shape[1] * 0.5), int(img.shape[0] * 0.5)),
                   (255, 255, 0), 2)
     plt.imshow(img)
     plt.show()

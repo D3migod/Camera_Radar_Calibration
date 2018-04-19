@@ -8,6 +8,7 @@ from __future__ import print_function
 # Попробуй установить cyaml - версию библиотеки парсинга написанную на Си, 
 # будет работать в 10 раз быстрее.
 # Этот код пытается ее использовать если она в наличии
+import yaml
 try:
     from yaml import CLoader as Loader
 except ImportError:
@@ -19,6 +20,7 @@ import numpy as np
 
 #change this to where data is stored
 data_dir = '../data'
+ymlfname = 't24.305.026.info.yml.gz'
 
 
 def ungzip(yaml_in_directory):
@@ -35,7 +37,7 @@ def ungzip(yaml_in_directory):
 def read_image_grabmsecs(yml_path):
     yml_data = ungzip(yml_path)
     image_frames = [sh['leftImage']
-                    for sh in yml_data['shots'] if 'liftImage' in sh.keys()]
+                    for sh in yml_data['shots'] if 'leftImage' in sh.keys()]
     
     data = np.zeros(shape=(len(image_frames), 1), dtype=int)
     i_real = 0
@@ -47,5 +49,5 @@ def read_image_grabmsecs(yml_path):
     return data
 
 if __name__ == '__main__':
-    grabmsecs = read_image_grabmsecs(os.path.join(data_dir, 't24.306.026.yaml.gz'))
+    grabmsecs = read_image_grabmsecs(os.path.join(data_dir, ymlfname))
     print(grabmsecs)
