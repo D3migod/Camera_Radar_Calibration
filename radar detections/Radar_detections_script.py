@@ -1,8 +1,10 @@
 from __future__ import print_function
 try:
     from yaml import CLoader as Loader
+    print('using nice and fast CLoader')
 except ImportError:
     from yaml import Loader
+    print('using ugly and slow-as-fuck Loader')
 import cv2
 import math
 
@@ -245,7 +247,8 @@ if __name__ == '__main__':
     # Сhange this to where data is stored
     data_dir = '/Users/bulatgaliev/GitHub/Masters_diploma/radar_calib_data'
     #'/prun/mipt/student_nirs/2018/galiev_bulat/radar_calib_data'
-
+    # data_dir = '../../radar_calib_data'
+    
     # Read grabmsecs
     grabmsecs = np.concatenate((read_image_grabmsecs(os.path.join(data_dir, 't24.305.026.info.yml.gz')).flatten(),
                       read_image_grabmsecs(os.path.join(data_dir, 't24.305.027.info.yml.gz')).flatten(),
@@ -307,7 +310,8 @@ if __name__ == '__main__':
     
     # camera_table = read_table(os.path.join(camera_data_dir, 't24.305.028.left.avi.tsv'))
     camera_table = read_tables(camera_data_dir)
-    selectedCameraDataTable = camera_table.iloc[:, [2, 4, 5]]
+    # Read FrameNumber, x, y, w, h
+    selectedCameraDataTable = camera_table.iloc[:, [2, 4, 5, 6, 7]]
     totalFrameNumber = 0 
     isFirstZero = False
     for index, row in selectedCameraDataTable.iterrows():
@@ -382,10 +386,19 @@ if __name__ == '__main__':
         
         
         currentFrameCameraDetections = selectedCameraDataTable.loc[selectedCameraDataTable['FrameNumber'] == grabmsecsIndex]
-        currentFrameCameraDetectionsValues = currentFrameCameraDetections.values[:, -2:]
-        cartesianCameraPoints = np.array(list(map(lambda x: np.array([x[0], x[1], 0]), currentFrameCameraDetectionsValues)))
+        tmp = currentFrameCameraDetections
+        # To match radar detections we must take bottom-middle
+        # (i.e. x + 0.5w, y+h ) point of camera detections!
+        cartesianCameraPoints = np.hstack([(tmp.loc[:, 'x'] + 0.5 * tmp.loc[:, 'w']).as_matrix().reshape(-1, 1),
+                                           (tmp.loc[:, 'y'] +       tmp.loc[:, 'h']).as_matrix().reshape(-1, 1), 
+                                            np.zeros(shape=(tmp.shape[0], 1), dtype=np.float32)]
+                                         )
         frame_todraw = frame.copy() #don't draw on original frame
         
+        # Grid points should rotate with the Camera!
+        gridPoints = cam.project(np.array(cartesianGridPoints))
+
+
         for point in gridPoints:
             x, y = int(point[0]*0.5), int(point[1]*0.5)
             if x < frame.shape[1] and y < frame.shape[0] and x > 0 and y > 0:
